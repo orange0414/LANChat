@@ -3,7 +3,11 @@ import socket
 import threading
 import sys
 
-
+'''
+-------------------------------------------------------------------------------------
+--------------------- RECEIVER TASK -------------------------------------------------
+-------------------------------------------------------------------------------------
+'''
 def receive_messages(sock):
     while True:
         try:
@@ -14,7 +18,11 @@ def receive_messages(sock):
         except:
             break
 
-
+'''
+-------------------------------------------------------------------------------------
+--------------------- SENDER TASK ---------------------------------------------------
+-------------------------------------------------------------------------------------
+'''
 def start_client(host, port):
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect((host, port))
@@ -28,7 +36,10 @@ def start_client(host, port):
         while True:
             msg = input()
             if msg.lower() == "exit":
-                break
+                print("Asegura que quieres desconectar(y/n): ")
+                exit_confi = input()
+                if exit_confi == 'y':
+                    break
             client.send(msg.encode("utf-8"))
     except KeyboardInterrupt:
         pass

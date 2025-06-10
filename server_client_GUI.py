@@ -36,11 +36,10 @@ def handle_client(conn, addr, clients):
 
 def broadcast(nickename, message, sender_conn, clients):
     for client in clients.keys():
-        if client != sender_conn:
-            try:
-                client.send(f"[{nickename}]: {message}".encode("utf-8"))
-            except:
-                pass
+        try:
+            client.send(f"[{nickename}]: {message}".encode("utf-8"))
+        except:
+            pass
 
 '''
 -------------------------------------------------------------------------------------
