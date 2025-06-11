@@ -82,9 +82,10 @@ class ChatClientGUI(QtWidgets.QMainWindow):
         self.input_line.clear()
 
     '''SHOW RECEIVED MESSAGE'''
-    def on_message(self, text):
+    def on_message(self, text_html):
         # Añadir mensaje al display sin interferir con la entrada
-        self.chat_display.append(text)
+        # Si es broadcast de Sever contenera el termino “[Server]:”
+        self.chat_display.insertHtml(text_html)
         
     '''
     Sobreescribe la funcion de closeEvent para poder cerrar el socket antes de cerra

@@ -12,34 +12,64 @@ import threading
 def handle_client(conn, addr, clients):
     print(f"[NEW CONNECTION] {addr} connected.")
     
-    # Pedir el nombre de cliente y avisar a todo el mundo del chat
-    conn.send(f"First message should be your nickname.".encode("utf-8"))
+    # --------------------------------------------------------------------------------
+    # --------------------------------FASE INICIAL------------------------------------
+    # ---------Pedir el nombre de cliente y avisar a todo el mundo del chat-----------
+    #---------------------------------------------------------------------------------
+    conn.send(f"<span style = 'color:green'>[Server]: First message should be your nickname.</span><br>".encode("utf-8"))
     nickname = conn.recv(1024).decode("utf-8") 
     
     clients[conn] = nickname
     
-    broadcast("Server", f"{nickname} ha entrado al chat.", conn, clients)
-    conn.send((f"Continuaras como: {nickname} \nYa puedes empezar a enviar.").encode("utf-8"))
+    server_msg  = (f"<span style = 'color:green;'>[Server]:</span> "
+                   f"<span style = 'color:cyan;'>{nickname}</span> "
+                   f"<span style = 'color:green;'>ha entrado al chat.</span><br>")
+    server_broadcast(server_msg, clients)
+    server_msg = (f"<span style = 'color:green;'>[Server]: Continuaras como</span> "
+                  f"<span style = 'color:cyan;'>{nickname} </span><br>")
+    conn.send(server_msg.encode('utf-8'))
+    # --------------------------------------------------------------------------------
+    # --------------------------------ESTABLISHED-------------------------------------
+    # --------------------------------------------------------------------------------
     while True:
         try:
             msg = conn.recv(1024).decode("utf-8")   # lee los bits que envia, y con un maximo de 1024 bytes, bloqueante
             if not msg: # Si en el otro extremo llama a close() entonces devuelveria b''(bytes vacio)
                 break
-            broadcast(nickname, msg, conn, clients)
+            client_broadcast(msg, conn, clients)
         except ConnectionResetError:
             break
+    
+    # --------------------------------------------------------------------------------
+    # ----------------------------------DESCONEXION----------------------------------
+    # --------------------------------------------------------------------------------
     print(f"[DISCONNECT] {addr} disconnected.")
-    broadcast("Server", f"{nickname} ha salido del chat.", conn, clients)
+    server_msg = f"<span style = 'color:green;'>[Server]:</span> "f"<span style = 'color:cyan;'>{nickname}</span> ha salido del chat.<br>"
+    server_broadcast(server_msg, clients)
     del clients[conn]
     conn.close()
 
-
-def broadcast(nickename, message, sender_conn, clients):
+def server_broadcast(server_msg, clients):
     for client in clients.keys():
         try:
-            client.send(f"[{nickename}]: {message}".encode("utf-8"))
+            client.send(server_msg.encode("utf-8"))
         except:
             pass
+        
+def client_broadcast(message, sender_conn, clients):
+    for client in clients.keys():
+        if not client == sender_conn:
+            html_msg = f"<span style='color: cyan;'>[{clients[sender_conn]}]:</span> "f"{message}<br>"
+            try:
+                client.send(html_msg.encode("utf-8"))
+            except:
+                pass
+        elif client == sender_conn:
+            html_msg = f"<span style='color: cyan; font-weight:bold;'>[{clients[sender_conn]}]</span>: "f"{message}<br>"
+            try:
+                client.send(html_msg.encode("utf-8"))
+            except:
+                pass
 
 '''
 -------------------------------------------------------------------------------------
